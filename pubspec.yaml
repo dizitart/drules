@@ -1,7 +1,7 @@
 name: drules
 description: A simple Json based rule engine for Dart.
 version: 1.0.0
-homepage: https://drules.dizitart.com/
+homepage: https://github.com/dizitart/drules
 repository: https://github.com/dizitart/drules
 
 environment:
