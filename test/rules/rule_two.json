@@ -1,0 +1,39 @@
+{
+    "id": "2",
+    "name": "Rule Two",
+    "enabled": true,
+    "priority": 2,
+    "conditions": {
+        "operator": "all",
+        "operands": [
+            {
+                "operator": "==",
+                "operands": [
+                    "email.from",
+                    "a@b.com"
+                ]
+            },
+            {
+                "operator": "==",
+                "operands": [
+                    "email.subject",
+                    "Hello"
+                ]
+            }
+        ]
+    },
+    "actionInfo": {
+        "onSuccess": {
+            "operation": "print",
+            "parameters": [
+                "Email with subject ${email.subject} has been read."
+            ]
+        },
+        "onFailure": {
+            "operation": "print",
+            "parameters": [
+                "Rule two failed with error - ${error}"
+            ]
+        }
+    }
+}

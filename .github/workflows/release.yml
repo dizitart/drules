@@ -1,0 +1,57 @@
+name: Release Drules
+
+on:
+  push:
+    tags:
+      - 'drules-[0-9]+.[0-9]+.[0-9]+*'
+
+jobs:
+  publish:
+    name: Publish on pub.dev
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write # Required for authentication using OIDC
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2.12.0
+        with:
+          channel: 'stable'
+
+      # This action adds a token needed for pub.dev authentication
+      - name: Install Dart
+        uses: dart-lang/setup-dart@v1.6.5
+        with:
+          sdk: stable
+
+      - name: Setup Build System
+        shell: bash
+        run: |
+          chmod +x ./.github/workflows/scripts/install-tools.sh
+          ./.github/workflows/scripts/install-tools.sh
+
+      - name: Install dependencies 
+        run: dart pub get
+
+      - name: Generate Code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Analyze Drules
+        run: dart analyze --fatal-infos
+
+      - name: Format Drules
+        run: dart format . --fix
+
+      - name: Publish Drules
+        uses: nick-fields/retry@v3
+        with:
+          max_attempts: 10
+          timeout_minutes: 60
+          command: dart pub publish --force

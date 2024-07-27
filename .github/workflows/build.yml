@@ -1,0 +1,105 @@
+name: Build Drules
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "README.md"
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "README.md"
+
+jobs:
+  test_linux:
+    name: Build Drules on Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install lcov
+        run: sudo apt-get update -qq -y && sudo apt-get install lcov
+
+      - name: Setup Build System
+        shell: bash
+        run: |
+          chmod +x ./.github/workflows/scripts/install-tools.sh
+          ./.github/workflows/scripts/install-tools.sh
+
+      - name: Install dependencies 
+        run: dart pub get
+
+      - name: Test Drules
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          dart test --coverage
+
+      - name: Upload coverage
+        if: github.ref == 'refs/heads/main'
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unittests
+          file: coverage/lcov.info
+
+  test_macos:
+    name: Build Nitrite on MacOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Setup Build System
+        shell: bash
+        run: ./.github/workflows/scripts/install-tools.sh
+
+      - name: Install dependencies 
+        run: dart pub get
+        
+      - name: Test Drules
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          dart test --coverage
+
+  test_windows:
+    name: Build Nitrite on Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Setup Build System
+        shell: cmd
+        run: .\.github\workflows\scripts\install-tools.bat
+
+      - name: Install dependencies 
+        run: dart pub get
+
+      - name: Test Drules
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          dart test --coverage

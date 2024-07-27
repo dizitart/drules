@@ -1,0 +1,27 @@
+{
+    "id": "1",
+    "name": "Rule One",
+    "enabled": true,
+    "priority": 1,
+    "conditions": {
+        "operator": "==",
+        "operands": [
+            "email.from",
+            "a@b.com"
+        ]
+    },
+    "actionInfo": {
+        "onSuccess": {
+            "operation": "print",
+            "parameters": [
+                "Email has been tagged as read."
+            ]
+        },
+        "onFailure": {
+            "operation": "print",
+            "parameters": [
+                "Rule one failed with error - ${error}"
+            ]
+        }
+    }
+}

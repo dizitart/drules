@@ -1,0 +1,36 @@
+{
+    "id": "3",
+    "name": "Stop Action Test Rule",
+    "enabled": true,
+    "priority": 2,
+    "conditions": {
+        "operator": "==",
+        "operands": [
+            "email.from",
+            "a@b.com"
+        ]
+    },
+    "actionInfo": {
+        "onSuccess": {
+            "operation": "chain",
+            "parameters": [
+                {
+                    "operation": "print",
+                    "parameters": [
+                        "Email has been tagged as read."
+                    ]
+                },
+                {
+                    "operation": "stop",
+                    "parameters": []
+                }
+            ]
+        },
+        "onFailure": {
+            "operation": "print",
+            "parameters": [
+                "Stop Action Test Rule 1 failed with error - ${error}"
+            ]
+        }
+    }
+}
