@@ -1,5 +1,10 @@
 # Drules
 
+[![Build Drules](https://github.com/dizitart/drules/actions/workflows/build.yml/badge.svg)](https://github.com/dizitart/drules/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/dizitart/drules/graph/badge.svg?token=1RifqFdmLv)](https://codecov.io/gh/dizitart/drules)
+[![Pub Version](https://img.shields.io/pub/v/drules)](https://pub.dev/packages/drules)
+[![Discussion](https://img.shields.io/badge/chat-Discussion-blueviolet)](https://github.com/dizitart/drules/discussions)
+
 Drules is a simple rule engine for Dart. It allows you to define rules in Json format and execute them against a given context. The rules are defined in a simple Json format and can be easily extended to support more complex rules. 
 
 ## Usage
