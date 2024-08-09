@@ -5,6 +5,10 @@
 [![Pub Version](https://img.shields.io/pub/v/drules)](https://pub.dev/packages/drules)
 [![Discussion](https://img.shields.io/badge/chat-Discussion-blueviolet)](https://github.com/dizitart/drules/discussions)
 
+<p align="center">
+    <img src="assets/drules-logo.png" width="256" alt="drules logo">
+</p>
+
 Drules is a simple rule engine for Dart. It allows you to define rules in Json format and execute them against a given context. The rules are defined in a simple Json format and can be easily extended to support more complex rules. 
 
 ## Usage
@@ -354,5 +358,7 @@ Also consider supporting it by giving a star on [GitHub](https://github.com/dizi
 
 If you would like to contribute to this project, please feel free to send a pull request.
 
+## Logo Attribution
 
+<a href="https://www.flaticon.com/free-icons/business-and-finance" title="business and finance icons">Business and finance icons created by bukeicon - Flaticon</a>
 
