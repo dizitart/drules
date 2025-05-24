@@ -1,27 +1,27 @@
-import 'package:drules/drules.dart';
+import 'package:drules/drules.dart' as drules;
 import 'package:test/test.dart';
 
 void main() {
   group('Enhanced Drules API', () {
-    late Drules drules;
+    late drules.Drules engine;
 
     setUp(() {
-      drules = Drules();
+      engine = drules.Drules();
     });
 
     tearDown(() async {
-      await drules.dispose();
+      await engine.dispose();
     });
 
     group('Fact Management', () {
       test('should add static facts correctly', () async {
-        drules.addFacts({
+        engine.addFacts({
           'staticValue': 42,
           'userName': 'John Doe',
           'isActive': true,
         });
 
-        final facts = await drules.getCurrentFacts();
+        final facts = await engine.getCurrentFacts();
         expect(facts['staticValue'], equals(42));
         expect(facts['userName'], equals('John Doe'));
         expect(facts['isActive'], isTrue);
@@ -29,69 +29,68 @@ void main() {
 
       test('should add dynamic facts correctly', () async {
         var counter = 0;
-        drules.addFacts({
+        engine.addFacts({
           'dynamicCounter': () => ++counter,
           'timestamp': () => DateTime.now().millisecondsSinceEpoch,
         });
 
-        final facts1 = await drules.getCurrentFacts();
+        final facts1 = await engine.getCurrentFacts();
         expect(facts1['dynamicCounter'], equals(1));
 
-        final facts2 = await drules.getCurrentFacts();
+        final facts2 = await engine.getCurrentFacts();
         expect(facts2['dynamicCounter'], equals(2));
         expect(facts2['timestamp'], isA<int>());
       });
 
       test('should handle async fact providers', () async {
-        drules.addFacts({
+        engine.addFacts({
           'asyncValue': () async {
             await Future.delayed(Duration(milliseconds: 10));
             return 'async_result';
           },
         });
 
-        final facts = await drules.getCurrentFacts();
+        final facts = await engine.getCurrentFacts();
         expect(facts['asyncValue'], equals('async_result'));
       });
 
       test('should handle fact provider errors gracefully', () async {
-        drules.addFacts({
+        engine.addFacts({
           'errorFact': () => throw Exception('Test error'),
           'normalFact': () => 'normal_value',
         });
 
-        final facts = await drules.getCurrentFacts();
+        final facts = await engine.getCurrentFacts();
         expect(facts['errorFact_error'], contains('Test error'));
         expect(facts['normalFact'], equals('normal_value'));
       });
 
       test('should support fluent fact addition', () {
-        final result = drules
+        final result = engine
             .addFact('key1', 'value1')
             .addFact('key2', () => 'dynamic_value');
 
-        expect(result, same(drules));
+        expect(result, same(engine));
       });
 
       test('should remove facts correctly', () async {
-        drules.addFacts({
+        engine.addFacts({
           'toRemove': 'value',
           'toKeep': 'value',
         });
 
-        drules.removeFact('toRemove');
-        final facts = await drules.getCurrentFacts();
+        engine.removeFact('toRemove');
+        final facts = await engine.getCurrentFacts();
 
         expect(facts.containsKey('toRemove'), isFalse);
         expect(facts['toKeep'], equals('value'));
       });
 
       test('should clear all facts', () async {
-        drules.addFacts({'key1': 'value1', 'key2': 'value2'});
-        drules.clearFacts();
+        engine.addFacts({'key1': 'value1', 'key2': 'value2'});
+        engine.clearFacts();
 
-        final facts = await drules.getCurrentFacts();
-        // Only internal or error keys may remain, so check user keys are gone
+        final facts = await engine.getCurrentFacts();
         expect(facts.containsKey('key1'), isFalse);
         expect(facts.containsKey('key2'), isFalse);
       });
@@ -99,20 +98,20 @@ void main() {
 
     group('Action Management', () {
       test('should add actions with fluent API', () {
-        final result = drules.addAction(
+        final result = engine.addAction(
           key: 'testAction',
           condition: (facts) => facts['value'] == 42,
           onSuccess: () async => 'success_result',
           onFail: () async => 'fail_result',
         );
 
-        expect(result, same(drules));
+        expect(result, same(engine));
       });
 
       test('should trigger action on success condition', () async {
         var actionTriggered = false;
 
-        drules.addFact('batteryLevel', 15).addAction(
+        engine.addFact('batteryLevel', 15).addAction(
               key: 'lowBatteryAlert',
               condition: (facts) => facts['batteryLevel'] < 20,
               onSuccess: () async {
@@ -122,7 +121,7 @@ void main() {
               onFail: () async => 'battery_level_ok',
             );
 
-        final results = await drules.trigger();
+        final results = await engine.trigger();
 
         expect(actionTriggered, isTrue);
         expect(results, hasLength(1));
@@ -133,7 +132,7 @@ void main() {
       test('should trigger action on fail condition', () async {
         var failActionTriggered = false;
 
-        drules.addFact('batteryLevel', 80).addAction(
+        engine.addFact('batteryLevel', 80).addAction(
               key: 'lowBatteryAlert',
               condition: (facts) => facts['batteryLevel'] < 20,
               onSuccess: () async => 'low_battery_alert_sent',
@@ -143,7 +142,7 @@ void main() {
               },
             );
 
-        final results = await drules.trigger();
+        final results = await engine.trigger();
 
         expect(failActionTriggered, isTrue);
         expect(results, hasLength(1));
@@ -151,23 +150,23 @@ void main() {
       });
 
       test('should handle action without callbacks', () async {
-        drules.addFact('value', 42).addAction(
+        engine.addFact('value', 42).addAction(
               key: 'noCallbacks',
               condition: (facts) => facts['value'] == 42,
             );
 
-        final results = await drules.trigger();
+        final results = await engine.trigger();
         expect(results, isEmpty);
       });
 
       test('should handle action execution errors', () async {
-        drules.addFact('value', 42).addAction(
+        engine.addFact('value', 42).addAction(
               key: 'errorAction',
               condition: (facts) => facts['value'] == 42,
               onSuccess: () async => throw Exception('Action failed'),
             );
 
-        final results = await drules.trigger();
+        final results = await engine.trigger();
 
         expect(results, hasLength(1));
         expect(results.first.output, isNull);
@@ -176,7 +175,7 @@ void main() {
       });
 
       test('should remove actions correctly', () async {
-        drules
+        engine
             .addFact('value', 42)
             .addAction(
               key: 'toRemove',
@@ -189,15 +188,15 @@ void main() {
               onSuccess: () async => 'should_trigger',
             );
 
-        drules.removeAction('toRemove');
-        final results = await drules.trigger();
+        engine.removeAction('toRemove');
+        final results = await engine.trigger();
 
         expect(results, hasLength(1));
         expect(results.first.output, equals('should_trigger'));
       });
 
       test('should clear all actions', () async {
-        drules
+        engine
             .addFact('value', 42)
             .addAction(
               key: 'action1',
@@ -210,8 +209,8 @@ void main() {
               onSuccess: () async => 'result2',
             );
 
-        drules.clearActions();
-        final results = await drules.trigger();
+        engine.clearActions();
+        final results = await engine.trigger();
 
         expect(results, isEmpty);
       });
@@ -222,7 +221,7 @@ void main() {
         var firstActionTriggered = false;
         var secondActionTriggered = false;
 
-        drules
+        engine
             .addFact('value', 42)
             .addAction(
               key: 'firstAction',
@@ -241,7 +240,7 @@ void main() {
               },
             );
 
-        final results = await drules.trigger();
+        final results = await engine.trigger();
 
         expect(firstActionTriggered, isTrue);
         expect(secondActionTriggered, isFalse);
@@ -256,7 +255,7 @@ void main() {
         var action2Triggered = false;
         var action3Triggered = false;
 
-        drules
+        engine
             .addFact('value', 42)
             .addAction(
               key: 'action1',
@@ -283,7 +282,7 @@ void main() {
               },
             );
 
-        final results = await drules.triggerSpecific(['action2', 'action3']);
+        final results = await engine.triggerSpecific(['action2', 'action3']);
 
         expect(action1Triggered, isFalse);
         expect(action2Triggered, isTrue);
@@ -294,14 +293,14 @@ void main() {
       });
 
       test('should ignore non-existent action keys', () async {
-        drules.addFact('value', 42).addAction(
+        engine.addFact('value', 42).addAction(
               key: 'existingAction',
               condition: (facts) => true,
               onSuccess: () async => 'result',
             );
 
         final results =
-            await drules.triggerSpecific(['nonExistent', 'existingAction']);
+            await engine.triggerSpecific(['nonExistent', 'existingAction']);
 
         expect(results, hasLength(1));
         expect(results.first.output, equals('result'));
@@ -314,13 +313,13 @@ void main() {
         var wifiConnected = true;
         var mobileDataActive = false;
 
-        drules.addFacts({
+        engine.addFacts({
           'wifiConnected': () => wifiConnected,
           'mobileDataActive': () => mobileDataActive,
         });
 
         // Network failover action
-        drules.addAction(
+        engine.addAction(
           key: 'networkFailover',
           condition: (facts) => facts['wifiConnected'] == false,
           onSuccess: () async {
@@ -331,13 +330,13 @@ void main() {
         );
 
         // Initial state - WiFi connected
-        var results = await drules.trigger();
+        var results = await engine.trigger();
         expect(results.first.output, equals('wifi_stable'));
         expect(mobileDataActive, isFalse);
 
         // WiFi disconnected
         wifiConnected = false;
-        results = await drules.trigger();
+        results = await engine.trigger();
         expect(results.first.output, equals('switched_to_mobile'));
         expect(mobileDataActive, isTrue);
       });
@@ -346,12 +345,12 @@ void main() {
         var batteryLevel = 50;
         var powerSavingMode = false;
 
-        drules.addFacts({
+        engine.addFacts({
           'batteryLevel': () => batteryLevel,
           'powerSavingMode': () => powerSavingMode,
         });
 
-        drules.addAction(
+        engine.addAction(
           key: 'batteryOptimization',
           condition: (facts) =>
               facts['batteryLevel'] < 20 && !facts['powerSavingMode'],
@@ -363,18 +362,18 @@ void main() {
         );
 
         // Battery sufficient
-        var results = await drules.trigger();
+        var results = await engine.trigger();
         expect(results.first.output, equals('battery_sufficient'));
 
         // Battery low
         batteryLevel = 15;
-        results = await drules.trigger();
+        results = await engine.trigger();
         expect(results.first.output, equals('power_saving_enabled'));
         expect(powerSavingMode, isTrue);
 
         // Already in power saving mode
         batteryLevel = 10;
-        results = await drules.trigger();
+        results = await engine.trigger();
         expect(results.first.output, equals('battery_sufficient'));
       });
 
@@ -383,13 +382,13 @@ void main() {
         var humidityLevel = 45;
         var ventilationActive = false;
 
-        drules.addFacts({
+        engine.addFacts({
           'temperature': () => temperature,
           'humidity': () => humidityLevel,
           'ventilationActive': () => ventilationActive,
         });
 
-        drules.addAction(
+        engine.addAction(
           key: 'climateControl',
           condition: (facts) =>
               facts['temperature'] > 25 || facts['humidity'] > 60,
@@ -401,12 +400,12 @@ void main() {
         );
 
         // Normal conditions
-        var results = await drules.trigger();
+        var results = await engine.trigger();
         expect(results.first.output, equals('climate_optimal'));
 
         // High temperature
         temperature = 27.0;
-        results = await drules.trigger();
+        results = await engine.trigger();
         expect(results.first.output, equals('ventilation_activated'));
         expect(ventilationActive, isTrue);
       });
@@ -418,7 +417,7 @@ void main() {
         var step2Completed = false;
         var step3Completed = false;
 
-        drules
+        engine
             .addFact('process', 'start')
             .addAction(
               key: 'step1',
@@ -426,7 +425,7 @@ void main() {
               onSuccess: () async {
                 step1Completed = true;
                 // Trigger next step
-                await drules.triggerSpecific(['step2']);
+                await engine.triggerSpecific(['step2']);
                 return 'step1_complete';
               },
             )
@@ -436,7 +435,7 @@ void main() {
               onSuccess: () async {
                 step2Completed = true;
                 // Trigger next step
-                await drules.triggerSpecific(['step3']);
+                await engine.triggerSpecific(['step3']);
                 return 'step2_complete';
               },
             )
@@ -449,7 +448,7 @@ void main() {
               },
             );
 
-        await drules.triggerSpecific(['step1']);
+        await engine.triggerSpecific(['step1']);
 
         expect(step1Completed, isTrue);
         expect(step2Completed, isTrue);
@@ -461,29 +460,181 @@ void main() {
       test('should refresh facts before each trigger', () async {
         var counter = 0;
 
-        drules.addFacts({
+        engine.addFacts({
           'counter': () => ++counter,
         });
 
-        drules.addAction(
+        engine.addAction(
           key: 'counterAction',
           condition: (facts) => facts['counter'] > 0,
           onSuccess: () async {
-            final currentFacts = await drules.getCurrentFacts();
+            final currentFacts = await engine.getCurrentFacts();
             return 'counter_value_${currentFacts['counter']}';
           },
         );
 
         // First trigger
-        var results = await drules.trigger();
+        var results = await engine.trigger();
         expect(results.first.output, contains('counter_value_'));
 
         // Second trigger should have incremented counter
-        results = await drules.trigger();
+        results = await engine.trigger();
         expect(results.first.output, contains('counter_value_'));
 
         // Verify counter was called multiple times
         expect(counter, greaterThan(1));
+      });
+    });
+
+    group('Logical Operator Helpers and Nesting', () {
+      test(
+          'should support eq, neq, gt, lt, gte, lte, contains, startsWith, endsWith',
+          () async {
+        engine.addFacts({
+          'a': 5,
+          'b': 10,
+          's': 'hello world',
+          'list': [1, 2, 3],
+        });
+        engine
+            .addAction(
+              key: 'eq',
+              condition: drules.eq('a', 5),
+              onSuccess: () async => 'eq',
+            )
+            .addAction(
+              key: 'neq',
+              condition: drules.neq('a', 10),
+              onSuccess: () async => 'neq',
+            )
+            .addAction(
+              key: 'gt',
+              condition: drules.gt('b', 5),
+              onSuccess: () async => 'gt',
+            )
+            .addAction(
+              key: 'lt',
+              condition: drules.lt('a', 10),
+              onSuccess: () async => 'lt',
+            )
+            .addAction(
+              key: 'gte',
+              condition: drules.gte('a', 5),
+              onSuccess: () async => 'gte',
+            )
+            .addAction(
+              key: 'lte',
+              condition: drules.lte('a', 5),
+              onSuccess: () async => 'lte',
+            )
+            .addAction(
+              key: 'contains_str',
+              condition: drules.contains('s', 'hello'),
+              onSuccess: () async => 'contains_str',
+            )
+            .addAction(
+              key: 'contains_list',
+              condition: drules.contains('list', 2),
+              onSuccess: () async => 'contains_list',
+            )
+            .addAction(
+              key: 'startsWith',
+              condition: drules.startsWith('s', 'hello'),
+              onSuccess: () async => 'startsWith',
+            )
+            .addAction(
+              key: 'endsWith',
+              condition: drules.endsWith('s', 'world'),
+              onSuccess: () async => 'endsWith',
+            );
+        final results = await engine.triggerSpecific([
+          'eq',
+          'neq',
+          'gt',
+          'lt',
+          'gte',
+          'lte',
+          'contains_str',
+          'contains_list',
+          'startsWith',
+          'endsWith'
+        ]);
+        expect(
+            results.map((r) => r.output),
+            containsAll([
+              'eq',
+              'neq',
+              'gt',
+              'lt',
+              'gte',
+              'lte',
+              'contains_str',
+              'contains_list',
+              'startsWith',
+              'endsWith'
+            ]));
+      });
+
+      test('should support all, any, none, not logical helpers', () async {
+        engine.addFacts({'x': 5, 'y': 10, 'z': 15});
+        engine
+            .addAction(
+              key: 'all',
+              condition: drules.all([
+                drules.gt('x', 2),
+                drules.lt('y', 20),
+                drules.eq('z', 15),
+              ]),
+              onSuccess: () async => 'all',
+            )
+            .addAction(
+              key: 'any',
+              condition: drules.any([
+                drules.eq('x', 1),
+                drules.eq('y', 10),
+                drules.eq('z', 0),
+              ]),
+              onSuccess: () async => 'any',
+            )
+            .addAction(
+              key: 'none',
+              condition: drules.none([
+                drules.eq('x', 1),
+                drules.eq('y', 2),
+              ]),
+              onSuccess: () async => 'none',
+            )
+            .addAction(
+              key: 'not',
+              condition: drules.not(drules.eq('x', 0)),
+              onSuccess: () async => 'not',
+            );
+        final results =
+            await engine.triggerSpecific(['all', 'any', 'none', 'not']);
+        expect(results.map((r) => r.output),
+            containsAll(['all', 'any', 'none', 'not']));
+      });
+
+      test('should support deeply nested logical conditions', () async {
+        engine.addFacts({'a': 1, 'b': 2, 'c': 3, 'd': 4});
+        engine.addAction(
+          key: 'nested',
+          condition: drules.all([
+            drules.any([
+              drules.eq('a', 1),
+              drules.eq('b', 99),
+            ]),
+            drules.not(drules.eq('c', 99)),
+            drules.none([
+              drules.eq('d', 99),
+              drules.eq('a', 99),
+            ]),
+          ]),
+          onSuccess: () async => 'nested',
+        );
+        final results = await engine.triggerSpecific(['nested']);
+        expect(results, hasLength(1));
+        expect(results.first.output, equals('nested'));
       });
     });
   });

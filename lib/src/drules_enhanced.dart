@@ -262,3 +262,75 @@ class _EnhancedAction {
     this.onFail,
   });
 }
+
+// --- Logical operator helpers for nested conditions ---
+
+/// Returns a condition that is true if all provided conditions are true.
+ConditionFunction all(List<ConditionFunction> conditions) {
+  return (facts) => conditions.every((c) => c(facts));
+}
+
+/// Returns a condition that is true if any provided condition is true.
+ConditionFunction any(List<ConditionFunction> conditions) {
+  return (facts) => conditions.any((c) => c(facts));
+}
+
+/// Returns a condition that is true if none of the provided conditions are true.
+ConditionFunction none(List<ConditionFunction> conditions) {
+  return (facts) => !conditions.any((c) => c(facts));
+}
+
+/// Returns a condition that is the negation of the provided condition.
+ConditionFunction not(ConditionFunction condition) {
+  return (facts) => !condition(facts);
+}
+
+/// Returns a condition for equality.
+ConditionFunction eq(String key, dynamic value) {
+  return (facts) => facts[key] == value;
+}
+
+/// Returns a condition for inequality.
+ConditionFunction neq(String key, dynamic value) {
+  return (facts) => facts[key] != value;
+}
+
+/// Returns a condition for greater than.
+ConditionFunction gt(String key, num value) {
+  return (facts) => facts[key] != null && facts[key] > value;
+}
+
+/// Returns a condition for less than.
+ConditionFunction lt(String key, num value) {
+  return (facts) => facts[key] != null && facts[key] < value;
+}
+
+/// Returns a condition for greater than or equal.
+ConditionFunction gte(String key, num value) {
+  return (facts) => facts[key] != null && facts[key] >= value;
+}
+
+/// Returns a condition for less than or equal.
+ConditionFunction lte(String key, num value) {
+  return (facts) => facts[key] != null && facts[key] <= value;
+}
+
+/// Returns a condition for contains (for String or List).
+ConditionFunction contains(String key, dynamic value) {
+  return (facts) {
+    final v = facts[key];
+    if (v is String) return v.contains(value.toString());
+    if (v is Iterable) return v.contains(value);
+    return false;
+  };
+}
+
+/// Returns a condition for startsWith (for String).
+ConditionFunction startsWith(String key, String value) {
+  return (facts) => facts[key] is String && facts[key].startsWith(value);
+}
+
+/// Returns a condition for endsWith (for String).
+ConditionFunction endsWith(String key, String value) {
+  return (facts) => facts[key] is String && facts[key].endsWith(value);
+}
