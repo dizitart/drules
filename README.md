@@ -340,6 +340,63 @@ Or you can use (+) operator to add a listener.
 ruleEngine + print;
 ```
 
+## Enhanced OOP-Friendly API (Drules)
+
+Drules also provides a modern, type-safe, and OOP-friendly API for Dart and Flutter projects. This API supports dynamic fact management, fluent method chaining, and type-safe action definitions, making it ideal for dependency injection and reactive systems.
+
+### Example Usage
+
+```dart
+import 'package:drules/drules.dart';
+
+void main() async {
+  final drules = Drules();
+
+  // Add static and dynamic facts
+  drules.addFacts({
+    'age': 20,
+    'wifiConnected': () => NetworkService.isWifiConnected(),
+    'batteryLevel': () => BatteryService.getCurrentLevel(),
+  });
+
+  // Add type-safe actions
+  drules.addAction(
+    key: 'lowBatteryAlert',
+    condition: (facts) => facts['batteryLevel'] < 20,
+    onSuccess: () async {
+      await NotificationService.showLowBatteryAlert();
+      print('Low battery alert triggered');
+    },
+    onFail: () => print('Battery level sufficient'),
+  );
+
+  drules.addAction(
+    key: 'wifiConnectionHandler',
+    condition: (facts) => facts['wifiConnected'] == false,
+    onSuccess: () async {
+      await NetworkService.switchToMobileData();
+      return 'switched_to_mobile';
+    },
+    onFail: () => print('WiFi connection stable'),
+  );
+
+  // Non-blocking evaluation with automatic fact refresh
+  await drules.trigger();
+}
+```
+
+### Key Features
+
+- Fluent, OOP-friendly API with method chaining
+- Type-safe, compile-time checked conditions and actions
+- Dynamic fact providers (sync or async) with automatic refresh
+- Action chaining and callback support
+- Non-blocking, async evaluation
+- Easy integration with dependency injection and clean architecture
+- Backward compatible with the classic JSON API
+
+For more advanced usage and migration tips, see the [integration tests](test/drules_enhanced_integration_test.dart) and [unit tests](test/drules_enhanced_test.dart).
+
 ## Bugs and feature requests
 
 Please file feature requests and bugs at the [issue tracker](https://github.com/dizitart/drules/issues). 
