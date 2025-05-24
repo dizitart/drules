@@ -9,3 +9,4 @@ export 'src/rule.dart' hide ruleId;
 export 'src/repos/index.dart';
 export 'src/events/activation.dart';
 export 'src/rule_context.dart' hide Facts;
+export 'src/drules_enhanced.dart';
