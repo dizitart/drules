@@ -77,7 +77,7 @@ class Facts {
     _dataMap.addAll(data);
   }
 
-  operator [](String field) {
+  dynamic operator [](String field) {
     if (_isEmbedded(field) && !containsKey(field)) {
       return _deepGet(field);
     }
