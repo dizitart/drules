@@ -10,7 +10,7 @@ environment:
 dependencies:
   async: ^2.11.0
   event_bus: ^2.0.0
-  template_expressions: ^3.2.0+9
+  template_expressions: ">=3.2.0+9 <5.0.0"
   uuid: ^4.4.0
 
 dev_dependencies:
